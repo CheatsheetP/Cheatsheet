@@ -3,7 +3,8 @@ import os
 import threading
 
 from .searchcodeapicaller import SearchcodeApiCaller
-from .fetchfile import work
+from .fetchfile import work as fetchfilework
+from .cloneall import work as cloneallwork
 
 
 def main(myarg):
@@ -22,16 +23,22 @@ def main(myarg):
     # create output dir if not exist
     os.makedirs(myarg.output, exist_ok=True)
 
+    # check worker
+    worker = fetchfilework
+    if myarg.clone_all != '':
+        worker = cloneallwork
+
     # create workers pool and start working
     worker_pool = [None for _ in range(myarg.thread)]
     for i in range(myarg.thread):
-        worker_pool[i] = threading.Thread(target=work,
+        worker_pool[i] = threading.Thread(target=worker,
                                           args=(myarg.output, base_url),
                                           kwargs={
                                               'start': i,
                                               'offset': myarg.thread,
                                               'per_page': myarg.per_query,
-                                              'num_limit': myarg.num
+                                              'num_limit': myarg.num,
+                                              'clone_all': myarg.clone_all
                                           })
         worker_pool[i].start()
 
@@ -65,6 +72,12 @@ if __name__ == '__main__':
                         type=int,
                         default=20,
                         help='Max number of result per query.')
+    parser.add_argument(
+        '-c',
+        '--clone_all',
+        default='',
+        help=
+        'Clone the whole repository and parse all files with given extension.')
     parser.add_argument(
         '-o',
         '--output',

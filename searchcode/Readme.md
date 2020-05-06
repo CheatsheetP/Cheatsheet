@@ -21,3 +21,12 @@ python3 -m searchcode.searchcode -n 0 -o path/to/out list defaultdict
 python3 -m searchcode.searchcode -n 10 -t 2 -p 5 -o path/to/out list map
 ```
 
+### Clone the whole drectory and get all files with given extension
+
+Example:
+
+Clone repos that uses "Qt", and get all files with extension "py".
+
+```
+python3 -m searchcode.searchcode -n 0 -o outputdir -c py Qt
+```

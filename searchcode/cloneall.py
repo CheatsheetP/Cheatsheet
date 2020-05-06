@@ -1,5 +1,7 @@
 import os
-import requests
+import tempfile
+from pathlib import Path
+import shutil
 
 from .searchcodeapicaller import SearchcodeApiCaller
 
@@ -16,10 +18,11 @@ def work(outputdir,
     Call searchcode api starting from page={start} and with {offset} pages.
     Stop when result is empty.
     Only doenload files from github.
-    Download files from master branch, then try develop branch if master branch doesn't exist.
+    Try to download files from branches specified in BRANCH list in order.
 
     Downloaded files will be named as {username}_{reponame}_{path_to_file}_{filename}.py
     Files with the same name will be wiped out.
+    Files will be placed in outputdir/reponame/
 
     Arguments:
         outputdir:
@@ -36,11 +39,9 @@ def work(outputdir,
             Number of repository per page (per request).
         num_limit:
             Numer of repository to download accross all threads. Set 0 for no limit.
+        clone_all:
+            File extension to clone.
     """
-    BRANCH = ['master', 'develop', 'dev', 'staging']
-
-    github_raw = 'https://raw.githubusercontent.com/'
-
     caller = SearchcodeApiCaller()
     page = start - offset
 
@@ -70,32 +71,31 @@ def work(outputdir,
             username = result['repo'][username + 11:]
             username = username[:username.find('/')]
 
-            # try branches in BRANCH in order
-            success = False
-            for branch in BRANCH:
-                # form url
-                file_url = f'{github_raw}{username}/{result["name"]}/{branch}'
-                if result['location']:
-                    file_url = f'{file_url}{result["location"]}'
-                file_url = f'{file_url}/{result["filename"]}'
+            # create a temp directory and clone the whole repo
+            tempdir = tempfile.TemporaryDirectory()
+            my_cwd = os.getcwd()
+            os.chdir(tempdir.name)
+            os.system(f'git clone --depth 1 {result["repo"]}')
+            os.chdir(my_cwd)
 
-                # download file and store it
-                file_res = requests.get(file_url, timeout=5)
-                if file_res.ok:
-                    # filename
-                    ofn = os.path.join(
-                        outputdir,
-                        f'{username}_{result["name"]}_{result["location"].replace(os.path.sep, "_")}_{result["filename"]}'
-                    )
-                    try:
-                        with open(ofn, 'bw') as of:
-                            of.write(file_res.content)
-                    except Exception as e:
-                        print(e)
-                    success = True
-                    break
+            # create output folder
+            os.mkdir(os.path.join(outputdir, result['name']))
 
-            if not success:
-                print(
-                    f'File not found: repo={result["repo"]}, loc={result["location"]}, file={result["filename"]}'
+            # Form generator and copy all files with given extension to outputdir
+            ext = f'*.{kwargs["clone_all"]}'
+            temprepo = os.path.join(tempdir.name, result['name'])
+            fg = Path(temprepo).rglob(ext)
+            for srcfn in fg:
+                # form output filename
+                rel_loc = os.path.relpath(srcfn, temprepo)
+                ofn = os.path.join(
+                    outputdir, result['name'],
+                    f'{username}_{result["name"]}_{os.path.dirname(rel_loc).replace(os.path.sep, "_")}_{os.path.basename(rel_loc).replace(os.path.sep, "_")}'
                 )
+                try:
+                    shutil.copyfile(srcfn, ofn)
+                except Exception as e:
+                    print(e)
+
+            # cleanup
+            tempdir.cleanup()
