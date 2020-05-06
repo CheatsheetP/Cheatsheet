@@ -1,4 +1,4 @@
-# Cheetsheet
+# Cheatsheet
 
 ## Prerequisite
 + [docker]
@@ -16,11 +16,11 @@
     ```sh
     $ docker-compose up
     ```
-3. Prepare the Cheetsheet sample installer.
+3. Prepare the Cheatsheet sample installer.
     ```sh
     $ pipenv install --dev
     ```
-4. Run the Cheetsheet sample installer and populate the local ElasticSearch cluster.
+4. Run the Cheatsheet sample installer and populate the local ElasticSearch cluster.
     ```sh
     $ pipenv run python install.py samples
     ```

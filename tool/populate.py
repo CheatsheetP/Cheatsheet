@@ -29,7 +29,7 @@ def populate(ip, root):
             'code': json.dumps(code),
         }
 
-        url = f"""http://{ip}:9200/cheetsheet/python/{index}"""
+        url = f"""http://{ip}:9200/cheatsheet/python/{index}"""
 
         result = requests.post(url, json=payload)
         print(result.text)

@@ -1,5 +1,5 @@
 ---
-    - hosts: cheetsheet_controller_external
+    - hosts: cheatsheet_controller_external
       become: yes
       gather_facts: no
       vars:
@@ -61,15 +61,15 @@
             force: yes
             update_cache: yes
 
-        - name: Clone Cheetsheet+ repo
+        - name: Clone Cheatsheet+ repo
           git:
-            repo: https://github.com/Cheetsheet/Cheetsheet.git
-            dest: /srv/CheetSheet
+            repo: https://github.com/CheatsheetP/Cheatsheet.git
+            dest: /srv/cheatsheet
 
-        - name: Install Cheetsheet+ dependencies
+        - name: Install Cheatsheet+ dependencies
           shell: '{{ item }}'
           args:
-            chdir: /srv/CheetSheet/
+            chdir: /srv/cheatsheet/
           with_items:
             - pipenv install --dev
 
@@ -90,11 +90,11 @@
             mode: 0755
             owner: '{{ login_user }}'
           with_items:
-            - /srv/CheetSheet/staging
-            - /srv/CheetSheet/staging/controller
+            - /srv/cheatsheet/staging
+            - /srv/cheatsheet/staging/controller
 
-        - name: Set the fact "cheetsheet_workers"
-          set_fact: cheetsheet_workers='{%for host in groups['cheetsheet_worker_internal']%}"{{host}}:9114"{% if not loop.last %},{% endif %}{% endfor %}'
+        - name: Set the fact "cheatsheet_workers"
+          set_fact: cheatsheet_workers='{%for host in groups['cheatsheet_worker_internal']%}"{{host}}:9114"{% if not loop.last %},{% endif %}{% endfor %}'
 
         - name: Copy staging configurations
           template:
@@ -102,18 +102,18 @@
             dest: '{{ item.dest }}'
           with_items:
             - src: ./prometheus.yml.j2
-              dest: /srv/CheetSheet/staging/controller/prometheus.yml
+              dest: /srv/cheatsheet/staging/controller/prometheus.yml
             - src: ./docker-compose.yml
-              dest: /srv/CheetSheet/staging/controller/docker-compose.yml
+              dest: /srv/cheatsheet/staging/controller/docker-compose.yml
 
         - name: Start Docker daemon
           service:
             name: docker
             state: restarted
 
-        - name: Start Cheetsheet+
+        - name: Start Cheatsheet+
           shell: '{{ item }}'
           args:
-            chdir: /srv/CheetSheet/staging/controller
+            chdir: /srv/cheatsheet/staging/controller
           with_items:
             - docker-compose up -d

@@ -3,16 +3,19 @@ import argparse
 import sqlite3
 import os
 import threading
-from searchcode.fetchfile import work
+from searchcode.fetchfile import work as fetchall_work
+from searchcode.cloneall import work as cloneall_work
 
 
 class BatchCrawler:
 
-    def __init__(self, input, output, thread):
+    def __init__(self, input, output, thread, clone_all):
         self.db_conn = sqlite3.connect(input)
         self.db_cur = self.db_conn.cursor()
         self.root = output
         self.thread = int(thread)
+        self.clone_all = clone_all
+        self.worker = cloneall_work if clone_all else fetchall_work
 
     def __del__(self):
         self.db_cur.close()
@@ -39,13 +42,14 @@ class BatchCrawler:
 
             worker_pool = [None for _ in range(self.thread)]
             for i in range(self.thread):
-                worker_pool[i] = threading.Thread(target=work,
+                worker_pool[i] = threading.Thread(target=self.worker,
                                                   args=(sample_root, base_url),
                                                   kwargs={
                                                       'start': i,
                                                       'offset': self.thread,
                                                       'per_page': 100,
-                                                      'num_limit': 0
+                                                      'num_limit': 0,
+                                                      'clone_all': self.clone_all
                                                   })
                 worker_pool[i].start()
 
@@ -67,13 +71,14 @@ def main():
     parser.add_argument('-i', '--input', help='Path to the sqlite dump.')
     parser.add_argument('-o', '--output', help='Path to the sample folder.')
     parser.add_argument('-t', '--thread', help='Number of worker threads.')
+    parser.add_argument('-c', '--clone_all', default='', help='Knob to clone a complete repo')
 
     args = parser.parse_args()
     if args.input is None or args.output is None or args.thread is None:
         print(parser.print_help())
         return
 
-    crawler = BatchCrawler(args.input, args.output, args.thread)
+    crawler = BatchCrawler(args.input, args.output, args.thread, args.clone_all)
     crawler.run()
 
 
