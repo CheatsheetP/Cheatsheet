@@ -34,7 +34,7 @@ class BatchCrawler:
             split_name = function.split(os.sep)
             base_url = f'https://searchcode.com/api/codesearch_I/?q={"+".join(split_name)}&src=2&lan=19'
 
-            sample_root = os.path.join(self.root, function)
+            sample_root = os.path.join(self.root, function.replace('.', os.sep))
             os.makedirs(sample_root, exist_ok=True)
 
             worker_pool = [None for _ in range(self.thread)]

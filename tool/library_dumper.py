@@ -31,7 +31,7 @@ class LibraryDumpaer():
         for node in body:
             if isinstance(node, ast.FunctionDef):
                 func = node.name
-                sig = '.'.join([prefix, func])
+                sig = '.'.join([prefix, func]).replace('.', os.sep)
                 collect.append(sig)
             elif isinstance(node, ast.ClassDef):
                 extend_prefix = '.'.join([prefix, node.name])
