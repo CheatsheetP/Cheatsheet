@@ -1,15 +1,15 @@
-[cheetsheet_worker_external]
+[cheatsheet_worker_external]
 23.236.51.8
 35.188.146.47
 34.69.241.223
 
-[cheetsheet_worker_internal]
+[cheatsheet_worker_internal]
 10.128.0.16
 10.128.0.17
 10.128.0.18
 
-[cheetsheet_controller_external]
+[cheatsheet_controller_external]
 35.192.130.86
 
-[cheetsheet_controller_internal]
+[cheatsheet_controller_internal]
 10.128.0.20

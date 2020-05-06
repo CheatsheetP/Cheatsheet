@@ -513,7 +513,7 @@
         "tableColumn": "",
         "targets": [
           {
-            "expr": "elasticsearch_cluster_health_number_of_nodes{cluster=\"cheetsheet\",instance=\"10.128.0.5:9114\",job=\"elastic-exporter\"}\t",
+            "expr": "elasticsearch_cluster_health_number_of_nodes{cluster=\"cheatsheet\",instance=\"10.128.0.5:9114\",job=\"elastic-exporter\"}\t",
             "format": "time_series",
             "instant": true,
             "interval": "",
@@ -7246,8 +7246,8 @@
         {
           "allValue": null,
           "current": {
-            "text": "cheetsheet",
-            "value": "cheetsheet"
+            "text": "cheatsheet",
+            "value": "cheatsheet"
           },
           "datasource": "Prometheus",
           "definition": "",
@@ -7350,7 +7350,7 @@
       ]
     },
     "timezone": "browser",
-    "title": "Cheetsheet",
+    "title": "Cheatsheet",
     "uid": "jc1CMl3Zz",
     "version": 6
   }

@@ -15,7 +15,7 @@ def main():
         if not os.path.isfile(sample_path):
             continue
 
-        url = f"""http://localhost:9200/cheetsheet/python/{index}"""
+        url = f"""http://localhost:9200/cheatsheet/python/{index}"""
 
         payload = None
         with open(sample_path, "r") as hdle:
