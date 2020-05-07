@@ -79,7 +79,7 @@ def work(outputdir,
             os.chdir(my_cwd)
 
             # create output folder
-            os.mkdir(os.path.join(outputdir, result['name']))
+            os.makedirs(os.path.join(outputdir, result['name']), exist_ok=True)
 
             # Form generator and copy all files with given extension to outputdir
             ext = f'*.{kwargs["clone_all"]}'
