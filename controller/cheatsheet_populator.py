@@ -7,6 +7,7 @@ import time
 import json
 import yaml
 import requests
+import cleancode.sanitizer
 
 
 class TaskProducer(threading.Thread):
@@ -22,20 +23,8 @@ class TaskProducer(threading.Thread):
                 if not file.endswith('.py'):
                     continue
                 path = os.path.join(root, file)
-
-                code = None
-                try:
-                    with open(path, 'r') as hdle:
-                        code = hdle.read()
-                except:
-                    continue
-
-                payload = {
-                    'language': 'python',
-                    'code': json.dumps(code),
-                }
-
-                self.task_queue.put(payload)
+                doc = cleancode.sanitizer.clean_snippet(path)
+                self.task_queue.put(doc)
 
 
 class TaskConsumer(threading.Thread):
