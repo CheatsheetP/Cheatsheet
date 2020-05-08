@@ -10,6 +10,7 @@ requests = "*"
 yapf = "*"
 pylint = "*"
 stdlib-list = "*"
+astunparse = "*"
 
 [requires]
 python_version = "3.7"
