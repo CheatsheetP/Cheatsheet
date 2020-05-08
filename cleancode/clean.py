@@ -1,6 +1,7 @@
 import tokenize, sys, ast, os, astunparse, json, base64
 from io import StringIO
 
+
 def remove_comments_and_docstrings(source):
     """
     Returns 'source' minus comments and docstrings.
@@ -31,7 +32,7 @@ def remove_comments_and_docstrings(source):
         # This series of conditionals removes docstrings:
         elif token_type == tokenize.STRING:
             if prev_toktype != tokenize.INDENT:
-        # This is likely a docstring; double-check we're not inside an operator:
+                # This is likely a docstring; double-check we're not inside an operator:
                 if prev_toktype != tokenize.NEWLINE:
                     # Note regarding NEWLINE vs NL: The tokenize module
                     # differentiates between newlines that start a new statement
@@ -51,9 +52,10 @@ def remove_comments_and_docstrings(source):
 
     return out
 
+
 def rename(code):
     tree = ast.parse(code)
-    var= set()
+    var = set()
     fun = set()
     mod = set()
     for node in ast.walk(tree):
@@ -67,10 +69,10 @@ def rename(code):
                 mod.add(n.name)
         elif isinstance(node, ast.Assign):
             for target in node.targets:
-                if isinstance(target,ast.Name):
+                if isinstance(target, ast.Name):
                     var.add(target.id)
                     target.id = 'V'
-        elif isinstance(node,ast.FunctionDef):
+        elif isinstance(node, ast.FunctionDef):
             for ar in (node.args.args):
                 fun.add(ar.arg)
                 ar.arg = 'V'
@@ -81,6 +83,7 @@ def rename(code):
                 node.id = 'V'
 
     return astunparse.unparse(tree)
+
 
 # usage : python3 cleancode/clean.py samples/raw
 if __name__ == '__main__':
@@ -103,12 +106,11 @@ if __name__ == '__main__':
         }
 
         cur_path = os.path.abspath(os.curdir)
-        out_path = cur_path + '/samples/' + sample.split('.')[0]+".json"
-        with open(out_path,'w+') as write_file:
-            json.dump(out, write_file,sort_keys=True, indent=4)
-        
-        # to load and decode text from json 
+        out_path = cur_path + '/samples/' + sample.split('.')[0] + ".json"
+        with open(out_path, 'w+') as write_file:
+            json.dump(out, write_file, sort_keys=True, indent=4)
+
+        # to load and decode text from json
         # with open(out_path,'r') as ff:
         #     test = json.load(ff)
         #     print(base64.b64decode(test['encoded']).decode('ascii'))
-        

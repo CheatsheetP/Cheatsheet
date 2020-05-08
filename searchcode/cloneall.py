@@ -75,7 +75,9 @@ def work(outputdir,
             tempdir = tempfile.TemporaryDirectory()
             my_cwd = os.getcwd()
             os.chdir(tempdir.name)
-            os.system(f'git clone --depth 1 {result["repo"].replace("git:", "https:")}')
+            os.system(
+                f'git clone --depth 1 {result["repo"].replace("git:", "https:")}'
+            )
             os.chdir(my_cwd)
 
             # create output folder
