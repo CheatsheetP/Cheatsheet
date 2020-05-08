@@ -42,15 +42,16 @@ class BatchCrawler:
 
             worker_pool = [None for _ in range(self.thread)]
             for i in range(self.thread):
-                worker_pool[i] = threading.Thread(target=self.worker,
-                                                  args=(sample_root, base_url),
-                                                  kwargs={
-                                                      'start': i,
-                                                      'offset': self.thread,
-                                                      'per_page': 100,
-                                                      'num_limit': 0,
-                                                      'clone_all': self.clone_all
-                                                  })
+                worker_pool[i] = threading.Thread(
+                    target=self.worker,
+                    args=(sample_root, base_url),
+                    kwargs={
+                        'start': i,
+                        'offset': self.thread,
+                        'per_page': 100,
+                        'num_limit': 0,
+                        'clone_all': self.clone_all
+                    })
                 worker_pool[i].start()
 
             for i in range(self.thread):
@@ -71,7 +72,10 @@ def main():
     parser.add_argument('-i', '--input', help='Path to the sqlite dump.')
     parser.add_argument('-o', '--output', help='Path to the sample folder.')
     parser.add_argument('-t', '--thread', help='Number of worker threads.')
-    parser.add_argument('-c', '--clone_all', default='', help='Knob to clone a complete repo')
+    parser.add_argument('-c',
+                        '--clone_all',
+                        default='',
+                        help='Knob to clone a complete repo')
 
     args = parser.parse_args()
     if args.input is None or args.output is None or args.thread is None:
