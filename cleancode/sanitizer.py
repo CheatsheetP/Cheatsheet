@@ -38,9 +38,14 @@ def clean_snippet(path):
     doc = {}
     with open(path, 'r') as hdle:
         raw = hdle.read()
-        trim_vars = rename(raw)
 
-        doc['text'] = trim_vars
+        trim_vars = None
+        try:
+            trim_vars = rename(raw)
+        except:
+            pass
+
+        doc['text'] = trim_vars if trim_vars else raw
         doc['encoded'] = base64.b64encode(raw.encode('ascii')).decode('ascii')
 
     return doc
