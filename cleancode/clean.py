@@ -1,11 +1,11 @@
-import tokenize, sys, ast, os, astunparse, json
+import tokenize, sys, ast, os, astunparse, json, base64
 from io import StringIO
 
 def remove_comments_and_docstrings(source):
     """
     Returns 'source' minus comments and docstrings.
     """
-    
+
     io_obj = (source)
     out = ""
     prev_toktype = tokenize.INDENT
@@ -58,10 +58,10 @@ def rename(code):
     mod = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.ClassDef):
-            node.name = 'C'     
+            node.name = 'C'
         elif isinstance(node, ast.ImportFrom):
             for n in node.names:
-                mod.add(n.name)          
+                mod.add(n.name)
         elif isinstance(node, ast.Import):
             for n in node.names:
                 mod.add(n.name)
@@ -86,7 +86,7 @@ def rename(code):
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('specify input folder')
-    
+
     samples = os.listdir(sys.argv[1])
     for sample in samples:
         sample_path = os.path.join(sys.argv[1], sample)
@@ -94,15 +94,21 @@ if __name__ == '__main__':
             continue
         source = open(sample_path)
         no_com = remove_comments_and_docstrings(source)
-        enc = rename(no_com)
-        
+        text = rename(no_com)
+
         out = {
             'language': 'python',
-            'encoded': enc,
-            'text': no_com
+            'text': text,
+            'encoded': base64.b64encode(no_com.encode('ascii')).decode('ascii')
         }
-        
+
         cur_path = os.path.abspath(os.curdir)
         out_path = cur_path + '/samples/' + sample.split('.')[0]+".json"
         with open(out_path,'w+') as write_file:
-            json.dump(out, write_file)
+            json.dump(out, write_file,sort_keys=True, indent=4)
+        
+        # to load and decode text from json 
+        # with open(out_path,'r') as ff:
+        #     test = json.load(ff)
+        #     print(base64.b64decode(test['encoded']).decode('ascii'))
+        
