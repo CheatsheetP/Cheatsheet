@@ -1,8 +1,12 @@
 [cheatsheet_worker_external]
 34.68.83.114
+35.239.158.19
+34.72.147.141
 
 [cheatsheet_worker_internal]
 10.128.0.21
+10.128.0.22
+10.128.0.23
 
 [cheatsheet_controller_external]
 35.192.130.86

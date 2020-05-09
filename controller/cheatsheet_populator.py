@@ -1,84 +1,75 @@
-import queue
 import argparse
-import threading
 import os
 import sys
 import time
 import json
+import multiprocessing
 import yaml
 import requests
 
 
-class TaskProducer(threading.Thread):
+def producer(task_queue, data_warehouse, max_task_num):
+    task_num = 0
 
-    def __init__(self, task_queue, data_warehouse):
-        threading.Thread.__init__(self)
-        self.task_queue = task_queue
-        self.data_warehouse = data_warehouse
+    for root, dirs, files in os.walk(data_warehouse):
+        for file in files:
+            if not file.endswith('.py'):
+                continue
 
-    def run(self):
-        for root, dirs, files in os.walk(self.data_warehouse):
-            for file in files:
-                if not file.endswith('.py'):
-                    continue
-                path = os.path.join(root, file)
+            task_num += 1
+            if task_num == max_task_num:
+                return
 
-                code = None
-                try:
-                    with open(path, 'r') as hdle:
-                        code = hdle.read()
-                except:
-                    continue
+            path = os.path.join(root, file)
 
-                payload = {
-                    'language': 'python',
-                    'code': json.dumps(code),
-                }
-
-                self.task_queue.put(payload)
-
-
-class TaskConsumer(threading.Thread):
-
-    def __init__(self, task_queue, node):
-        threading.Thread.__init__(self)
-        self.task_queue = task_queue
-        self.node = node
-
-        # TODO: Factor out these 3 parameters and put them in the config.
-        self.max_backoff = 10
-        self.wait_period = 10
-        self.checkpoint = 1000
-
-    def run(self):
-        backoff = 0
-        task_num = 0
-
-        while True:
+            code = None
             try:
-                task = self.task_queue.get(timeout=self.wait_period)
+                with open(path, 'r') as hdle:
+                    code = hdle.read()
+            except:
+                continue
 
-                try:
-                    url = f'http://{self.node}:9200/cheatsheet/python'
-                    result = requests.post(url, json=task)
-                except Exception as e:
-                    print(e, file=sys.stderr)
-                    continue
+            payload = {
+                'language': 'python',
+                'code': json.dumps(code),
+            }
 
-                task_num += 1
-                if task_num % self.checkpoint == 0:
-                    print(f'Insert {task_num} documents into {self.node}')
+            task_queue.put(payload)
 
+
+def consumer(task_queue, node):
+
+    # TODO: Factor out these 3 parameters and put them in the config.
+    max_backoff = 10
+    wait_period = 10
+    checkpoint = 1000
+
+    backoff = 0
+    task_num = 0
+
+    while True:
+        try:
+            task = task_queue.get(timeout=wait_period)
+
+            try:
+                url = f'http://{node}:9200/cheatsheet/python'
+                result = requests.post(url, json=task)
             except Exception as e:
-                print(
-                    f'No pending task, try to wait for {self.wait_period} seconds...'
-                )
-                backoff += 1
-                if backoff == self.max_backoff:
-                    print(f'No pending task after {backoff} tries, so quit...')
-                    break
+                print(e, file=sys.stderr)
+                continue
 
-        print(f'Insert {task_num} documents into {self.node}')
+            task_num += 1
+            if task_num % checkpoint == 0:
+                print(f'Insert {task_num} documents into {node}')
+
+        except Exception as e:
+            print(f'No pending task, try to wait for {wait_period} seconds...')
+            backoff += 1
+            if backoff == max_backoff:
+                print(f'No pending task after {backoff} tries, so quit...')
+                break
+
+    print(f'Insert {task_num} documents into {node}')
 
 
 def main():
@@ -96,19 +87,22 @@ def main():
     with open(args.config, 'r') as hdle:
         config = yaml.load(hdle, yaml.FullLoader)
 
-    task_queue = queue.Queue()
+    task_queue = multiprocessing.Queue()
     workers = []
 
-    # Create the task producer that generate code snippet documents.
-    producer = TaskProducer(task_queue, config['data_warehouse'])
-    producer.start()
-    workers.append(producer)
+    # Create the producer that generate code snippet documents.
+    prod = multiprocessing.Process(target=producer,
+                                   args=(task_queue, config['data_warehouse'],
+                                          config['max_task_num']))
+    prod.start()
+    workers.append(prod)
 
-    # Create the task consumers that insert documents into the ElasticSearch cluster.
+    # Create the consumers that insert documents into the ElasticSearch cluster.
     for node in config['cheatsheet_cluster']:
-        consumer = TaskConsumer(task_queue, node)
-        consumer.start()
-        workers.append(consumer)
+        cons = multiprocessing.Process(target=consumer,
+                                       args=(task_queue, node))
+        cons.start()
+        workers.append(cons)
 
     start_time = time.time()
 
