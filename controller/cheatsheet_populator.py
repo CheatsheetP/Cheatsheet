@@ -41,6 +41,7 @@ def producer(task_queue, data_warehouse, max_task_num):
 
     print(f'Produce {task_num} tasks with {total_size} bytes.')
 
+
 def consumer(task_queue, node):
 
     # TODO: Factor out these 3 parameters and put them in the config.
@@ -94,17 +95,20 @@ def main():
     task_queue = multiprocessing.Queue()
     workers = []
 
+    task_scheduler = config['task_scheduler']
+    post_worker = config['post_worker']
+
     # Create the producer that generate code snippet documents.
     prod = multiprocessing.Process(target=producer,
-                                   args=(task_queue, config['data_warehouse'],
-                                          config['max_task_num']))
+                                   args=(task_queue,
+                                         task_scheduler['data_warehouse'],
+                                         task_scheduler['max_task_num']))
     prod.start()
     workers.append(prod)
 
     # Create the consumers that insert documents into the ElasticSearch cluster.
-    for node in config['cheatsheet_cluster']:
-        cons = multiprocessing.Process(target=consumer,
-                                       args=(task_queue, node))
+    for node in post_worker['cheatsheet_cluster']:
+        cons = multiprocessing.Process(target=consumer, args=(task_queue, node))
         cons.start()
         workers.append(cons)
 
