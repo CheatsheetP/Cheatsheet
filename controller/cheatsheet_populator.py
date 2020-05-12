@@ -10,6 +10,7 @@ import requests
 
 def producer(task_queue, data_warehouse, max_task_num):
     task_num = 0
+    total_size = 0
 
     for root, dirs, files in os.walk(data_warehouse):
         for file in files:
@@ -29,6 +30,8 @@ def producer(task_queue, data_warehouse, max_task_num):
             except:
                 continue
 
+            total_size += os.path.getsize(path)
+
             payload = {
                 'language': 'python',
                 'code': json.dumps(code),
@@ -36,6 +39,7 @@ def producer(task_queue, data_warehouse, max_task_num):
 
             task_queue.put(payload)
 
+    print(f'Produce {task_num} tasks with {total_size} bytes.')
 
 def consumer(task_queue, node):
 
