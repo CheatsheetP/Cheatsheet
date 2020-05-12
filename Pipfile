@@ -10,6 +10,7 @@ requests = "*"
 yapf = "*"
 pylint = "*"
 stdlib-list = "*"
+pyyaml = "*"
 astunparse = "*"
 
 [requires]
