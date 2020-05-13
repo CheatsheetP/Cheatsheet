@@ -1,5 +1,5 @@
 task_scheduler:
-    data_warehouse: ./
+    data_warehouse: /data/bank
     max_task_num: 200000
 post_worker:
-    cheatsheet_cluster: ['127.0.0.1']
+    cheatsheet_cluster: ['10.128.0.24']
