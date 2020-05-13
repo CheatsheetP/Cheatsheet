@@ -65,9 +65,33 @@ def consumer(task_queue, node, method):
         try:
             keyword = task_queue.get(timeout=wait_period)
 
+            if method == 'fuzzy':
+                '''
+                For fuzzy mode, we split the signature into path tokens
+                and merge them with suffix order.
+
+                For example:
+                    Consider the signature a.b.c,
+                    we will generate a.b.c and b.c.
+
+                '''
+                tokens = keyword.split('.')
+                count = len(tokens)
+                multiple_keywords = []
+
+                for i in range(count - 1):
+                    buf = []
+                    for j in range(i, count):
+                        buf.append(tokens[j])
+                    keyword ='.'.join(buf)
+
+                    multiple_keywords.append(keyword)
+
+                keyword = ' '.join(multiple_keywords)
+
             query = {
                 "query": {
-                    method: {
+                    "match": {
                         "code": keyword
                     }
                 },
